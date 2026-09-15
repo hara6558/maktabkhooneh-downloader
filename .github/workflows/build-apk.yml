@@ -1,0 +1,66 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 1. دریافت پروژه
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. خارج کردن پروژه Android
+      - name: Extract Android project
+        run: |
+          mkdir -p android_project
+          unzip -o Maktabkhooneh-Android-Final.zip -d android_project
+
+      # 3. نصب وابستگی‌های Buildozer
+      - name: Install Buildozer dependencies
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            python3-pip \
+            python3-venv \
+            autoconf \
+            automake \
+            autopoint \
+            gettext \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo6 \
+            cmake \
+            libffi-dev \
+            libssl-dev
+
+      # 4. نصب Buildozer
+      - name: Install Buildozer
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install buildozer cython
+
+      # 5. ساخت APK
+      - name: Build APK
+        working-directory: android_project
+        run: |
+          buildozer -v android debug
+
+      # 6. ذخیره APK ساخته‌شده
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Maktabkhooneh-APK
+          path: android_project/bin/*.apk
