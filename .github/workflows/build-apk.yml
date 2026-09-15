@@ -12,36 +12,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Find Android project
-        run: |
-          echo "Repository files:"
-          find . -maxdepth 3 -type f | head -100
-
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
-
-      - name: Extract project ZIP
+      - name: Extract Android project
         run: |
           mkdir -p android_project
           unzip -o Maktabkhooneh-Android-Final.zip -d android_project
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+      - name: Install Buildozer dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk \
+            python3-pip python3-venv \
+            autoconf automake libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            libtinfo5 cmake libffi-dev libssl-dev
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Buildozer
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install buildozer cython
 
       - name: Build APK
+        working-directory: android_project
         run: |
-          cd android_project
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Maktabkhooneh-APK
-          path: android_project/**/build/outputs/apk/**/*.apk
+          path: android_project/bin/*.apk
